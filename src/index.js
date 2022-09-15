@@ -14,6 +14,7 @@ app.use(require('./routes/pacientes'));
 app.use(require('./routes/citas'));
 app.use(require('./routes/historiaClinica'));
 app.use(require('./routes/pagos'));
+app.use(require('./routes/agenda'));
 
 // conecta la base de datos
 con.connect((err)=>{

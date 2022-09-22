@@ -39,6 +39,7 @@ router.get('/api/citas', async(req,res)=>{
     }
 });
 
+
 router.get('/api/citas/n',(req,res)=>{
     const {fromDate} = req.query; 
     if( !fromDate ){

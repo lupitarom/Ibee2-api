@@ -62,29 +62,67 @@ router.post('/api/paciente', async (req, res) => {
 
 	const {
 		nombre,
-		ap_materno,
 		ap_paterno,
+		ap_materno,
+		telefono,
+		whatsApp,
         edad,
 		rfc,
-		telefono,
 		estado,
 		ciudad,
 		colonia,
 		calle,
 		numero,
 		cp,
+		regimen_fiscal,
+		nif,
+		razon_social,
+		correo,
+		estado2,
+		ciudad2,
+		colonia2,
+		calle2,
+		numero2,
+		cp2,
+		//Consultorio
+		nom_consultorio,
 	} = req.body
 
 	try {
+
+		//consultorio
+		const {} = await query(
+			`INSERT INTO consultorio (nombre) VALUES (?)`,
+			[nom_consultorio]
+		)
+
 		// crea el registro de la direccion y obtiene el id
 		const { insertId: direccionId } = await query(
 			`INSERT INTO direccion (estado, ciudad,colonia, calle, numero, cp) VALUES (?,?,?,?,?,?)`,
 			[estado, ciudad, colonia, calle, numero, cp]
 		)
+
+		const { insertId: direccion2Id } = await query(
+			`INSERT INTO direccion (estado, ciudad,colonia, calle, numero, cp) VALUES (?,?,?,?,?,?)`,
+			[estado2, ciudad2, colonia2, calle2, numero2, cp2]
+		)
+
+		//
+		const { insertId: datos_fiscalesID } = await query(
+			`INSERT INTO datos_fiscales (id_direccion, regimen_fiscal, id_correo, nif, razon_social) VALUES (?,?,?,?,?)`,
+			[direccion2Id, correoID, regimen_fiscal, nif, razon_social]
+		)
+
+		//
+		const{ insertId: correoID } = await query(
+		 'INSERT INTO correo (correo) VALUES (?)',
+		 [correo]
+		)
+
 		// crea el registro de la persona y obtiene el id
 		const { insertId: personaId } = await query(
-			`INSERT INTO persona (nombre, ap_paterno, ap_materno,edad, rfc, direccion_id_direccion, foto_id_foto) VALUES (?,?,?,?,?,?,?)`,
-			[nombre, ap_paterno, ap_materno, edad, rfc, direccionId, 1]
+			`INSERT INTO persona (nombre, ap_paterno, ap_materno,edad, rfc, direccion_id_direccion, foto_id_foto,id_datos_fiscales) VALUES (?,?,?,?,?,?,?,?)`,
+			[nombre, ap_paterno, ap_materno, edad, rfc, direccionId, 1, datos_fiscalesID]
 		)
 		// crea el registro de paciente
 		const { insertId: pacienteId } = await query(
@@ -93,8 +131,8 @@ router.post('/api/paciente', async (req, res) => {
 		)
 		// crea el registro de telefono
 		const { insertId: telefonoId } = await query(
-			`INSERT INTO telefono (telefono, tipo_telefono_id_tipo_telefono) VALUES (?,?)`,
-			[telefono, 1]
+			`INSERT INTO telefono (tipo_telefono_id_tipo_telefono, telefono, whatsapp) VALUES (?,?,?)`,
+			[1, telefono,whatsApp]
 		)
 		// crea el registro de paciente has telefono
 		const { insertId: telefonoHasTelefonoId } = await query(
@@ -115,7 +153,7 @@ router.post('/api/paciente', async (req, res) => {
         WHERE PHT.paciente_id_paciente = '${pacienteId}'
         AND PHT.telefono_id_telefono=T.id_telefono 
         AND T.tipo_telefono_id_tipo_telefono=TT.id_tipo_telefono 
-        AND TT.id_tipo_telefono=2`)
+        AND TT.id_tipo_telefono=1`)
 
 		const [tutor] = await query(`select P.* , T.* 
         from persona P, tutor T
@@ -142,12 +180,14 @@ router.put('/api/paciente/:id', async (req, res) => {
 		ap_paterno,
 		rfc,
 		telefono,
+		whatsApp,
 		estado,
 		ciudad,
 		colonia,
 		calle,
 		numero,
 		cp,
+
 	} = req.body
 
 	try {
@@ -182,11 +222,12 @@ router.put('/api/paciente/:id', async (req, res) => {
             WHERE PHT.paciente_id_paciente = '${id}'
             AND PHT.telefono_id_telefono=T.id_telefono 
             AND T.tipo_telefono_id_tipo_telefono=TT.id_tipo_telefono 
-            AND TT.id_tipo_telefono=2`)
+            AND TT.id_tipo_telefono=1`)
 
 		if (telefonoPaciente) {
 			await query(`UPDATE telefono SET
-                telefono='${telefono}'
+                telefono='${telefono}',
+				whatsapp='${whatsApp}'
                 WHERE id_telefono='${telefonoPaciente.id_telefono}';`)
 		}
 

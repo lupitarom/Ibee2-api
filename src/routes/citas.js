@@ -39,6 +39,7 @@ router.get('/api/citas', async(req,res)=>{
     }
 });
 
+
 router.get('/api/citas/n',(req,res)=>{
     const {fromDate} = req.query; 
     if( !fromDate ){
@@ -90,7 +91,7 @@ router.post('/api/citas',async(req,res)=>{
     try {
         await query(`INSERT INTO citas (
                 id_citas, 
-                paciente_id_paciente, 
+                pacientes_id_paciente, 
                 fecha_inicio, 
                 hora_inicio, 
                 fecha_fin, 

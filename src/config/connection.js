@@ -2,13 +2,13 @@ const mysql      = require('mysql');
 const util = require('util');
 
 // clever cloud old
-
+/*
 const con = mysql.createConnection({
-  host     : 'bpvkezwedayqcxl0xwhy-mysql.services.clever-cloud.com',
-  user     : 'uwitrskljcnnlr1e',
-  password : '673WVZvQsorvrkv1ijpJ',
-  database : 'bpvkezwedayqcxl0xwhy'
-}); 
+  host     : 'bklb0otatxag0a1qv5gj-mysql.services.clever-cloud.com',
+  user     : 'ux182sgoiygo7lte',
+  password : 'ZjxbAAAvCdvRz3fFUVEY',
+  database : 'bklb0otatxag0a1qv5gj'
+});
 /*
 // clever cloud new
 const con = mysql.createConnection({
@@ -18,13 +18,13 @@ const con = mysql.createConnection({
   database : 'b0ymg7ua1hzq53hzf52c'
 }); */
 // local
-/*
+
 const con = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
   password : '',
-  database : 'ibee_actualizada_nueva'
-});*/
+  database : 'ibee_actualizada_nueva_2'
+});
 
 
 module.exports ={

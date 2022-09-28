@@ -29,8 +29,16 @@ router.get('/api/pacientes/:termino', (req, res) => {
 router.get('/api/paciente/:id', async (req, res) => {
 	const { id } = req.params
 	try {
-		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*
-        FROM paciente PA, persona PE, foto FT ,direccion D
+		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
+        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
+        WHERE PA.id_paciente='${id}'
+        AND PA.persona_id_persona=PE.id_persona 
+        AND PE.foto_id_foto=FT.id_foto 
+		AND DF.direccion_id_direccion=D.id_direccion
+		AND PE.datos_fiscales_id_datos_fiscales=DF.id_datos_fiscales;`)
+
+		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
+        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
         AND PE.foto_id_foto=FT.id_foto 
@@ -41,7 +49,7 @@ router.get('/api/paciente/:id', async (req, res) => {
         WHERE PHT.paciente_id_paciente = '${id}'
         AND PHT.telefono_id_telefono=T.id_telefono 
         AND T.tipo_telefono_id_tipo_telefono=TT.id_tipo_telefono 
-        AND TT.id_tipo_telefono=2`)
+        AND TT.id_tipo_telefono=1 `)
 
 		const [tutor] = await query(`select P.* , T.* 
         from persona P, tutor T
@@ -50,7 +58,7 @@ router.get('/api/paciente/:id', async (req, res) => {
 
 		paciente.telefono = telefono
 		paciente.tutor = tutor
-
+		paciente.df = df
 		res.json({ paciente })
 	} catch (error) {
 		console.log(error)
@@ -62,29 +70,56 @@ router.post('/api/paciente', async (req, res) => {
 
 	const {
 		nombre,
-		ap_materno,
 		ap_paterno,
+		ap_materno,
+		telefono,
+		whatsapp,
         edad,
 		rfc,
-		telefono,
 		estado,
 		ciudad,
 		colonia,
 		calle,
 		numero,
 		cp,
+		regimen_fiscal,
+		nif,
+		razon_social,
+		correo,
+		estado2,
+		ciudad2,
+		colonia2,
+		calle2,
+		numero2,
+		cp2,
+
 	} = req.body
 
 	try {
+
 		// crea el registro de la direccion y obtiene el id
 		const { insertId: direccionId } = await query(
 			`INSERT INTO direccion (estado, ciudad,colonia, calle, numero, cp) VALUES (?,?,?,?,?,?)`,
 			[estado, ciudad, colonia, calle, numero, cp]
 		)
+
+		const { insertId: direccion2Id } = await query(
+			`INSERT INTO direccion (estado, ciudad,colonia, calle, numero, cp) VALUES (?,?,?,?,?,?)`,
+			[estado2, ciudad2, colonia2, calle2, numero2, cp2]
+		)
+
+		//
+		const { insertId: datos_fiscalesID } = await query(
+			`INSERT INTO datos_fiscales (direccion_id_direccion, regimen_fiscal, nif, razon_social) VALUES (?,?,?,?)`,
+			[direccion2Id, regimen_fiscal, nif, razon_social]
+		)
+
+		//
+
 		// crea el registro de la persona y obtiene el id
 		const { insertId: personaId } = await query(
-			`INSERT INTO persona (nombre, ap_paterno, ap_materno,edad, rfc, direccion_id_direccion, foto_id_foto) VALUES (?,?,?,?,?,?,?)`,
-			[nombre, ap_paterno, ap_materno, edad, rfc, direccionId, 1]
+			`INSERT INTO persona (nombre, ap_paterno, ap_materno,edad, rfc, direccion_id_direccion, foto_id_foto,datos_fiscales_id_datos_fiscales) VALUES (?,?,?,?,?,?,?,?)`,
+			[nombre, ap_paterno, ap_materno, edad, rfc, direccionId, 1, datos_fiscalesID]
 		)
 		// crea el registro de paciente
 		const { insertId: pacienteId } = await query(
@@ -93,8 +128,8 @@ router.post('/api/paciente', async (req, res) => {
 		)
 		// crea el registro de telefono
 		const { insertId: telefonoId } = await query(
-			`INSERT INTO telefono (telefono, tipo_telefono_id_tipo_telefono) VALUES (?,?)`,
-			[telefono, 1]
+			`INSERT INTO telefono (tipo_telefono_id_tipo_telefono, telefono, whatsapp) VALUES (?,?,?)`,
+			[1, telefono,whatsapp]
 		)
 		// crea el registro de paciente has telefono
 		const { insertId: telefonoHasTelefonoId } = await query(
@@ -115,7 +150,7 @@ router.post('/api/paciente', async (req, res) => {
         WHERE PHT.paciente_id_paciente = '${pacienteId}'
         AND PHT.telefono_id_telefono=T.id_telefono 
         AND T.tipo_telefono_id_tipo_telefono=TT.id_tipo_telefono 
-        AND TT.id_tipo_telefono=2`)
+        AND TT.id_tipo_telefono=1`)
 
 		const [tutor] = await query(`select P.* , T.* 
         from persona P, tutor T
@@ -138,21 +173,42 @@ router.put('/api/paciente/:id', async (req, res) => {
 	const {
 		foto,
 		nombre,
-		ap_materno,
 		ap_paterno,
-		rfc,
+		ap_materno,
 		telefono,
+		whatsapp,
+        edad,
+		rfc,
 		estado,
 		ciudad,
 		colonia,
 		calle,
 		numero,
 		cp,
+		regimen_fiscal,
+		nif,
+		razon_social,
+		correo,
+		estado2,
+		ciudad2,
+		colonia2,
+		calle2,
+		numero2,
+		cp2,
+
 	} = req.body
 
 	try {
-		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*
-        FROM paciente PA, persona PE, foto FT ,direccion D
+
+		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
+        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
+        WHERE PA.id_paciente='${id}'
+        AND PA.persona_id_persona=PE.id_persona 
+        AND PE.foto_id_foto=FT.id_foto 
+		AND D.id_direccion=DF.direccion_id_direccion;`)
+
+		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
+        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
         AND PE.foto_id_foto=FT.id_foto 
@@ -166,6 +222,7 @@ router.put('/api/paciente/:id', async (req, res) => {
             nombre='${nombre}',
             ap_paterno='${ap_paterno}',
             ap_materno='${ap_materno}',
+			edad='${edad}',
             rfc='${rfc}'
             WHERE id_persona='${paciente.persona_id_persona}';`)
 		await query(`UPDATE direccion SET
@@ -177,16 +234,33 @@ router.put('/api/paciente/:id', async (req, res) => {
             cp='${cp}'
             WHERE id_direccion='${paciente.id_direccion}';`)
 
+			await query(`UPDATE direccion SET
+            estado='${estado2}',
+            ciudad='${ciudad2}',
+            colonia='${colonia2}',
+            calle='${calle2}',
+            numero='${numero2}',
+            cp='${cp2}'
+            WHERE id_direccion='${df.id_direccion}';`)
+/*
+			await query(`UPDATE datos_fiscales SET
+            regimen_fiscal='${regimen_fiscal}',
+            nif='${nif}',
+            razon_social='${razon_social}',
+            WHERE direccion_id_direccion='${.id_direccion}';`)
+			*/
+
 		const [telefonoPaciente] = await query(`SELECT * 
             FROM paciente_has_telefono PHT, telefono T, tipo_telefono TT
             WHERE PHT.paciente_id_paciente = '${id}'
             AND PHT.telefono_id_telefono=T.id_telefono 
             AND T.tipo_telefono_id_tipo_telefono=TT.id_tipo_telefono 
-            AND TT.id_tipo_telefono=2`)
+            AND TT.id_tipo_telefono=1`)
 
 		if (telefonoPaciente) {
 			await query(`UPDATE telefono SET
-                telefono='${telefono}'
+                telefono='${telefono}',
+				whatsapp='${whatsapp}'
                 WHERE id_telefono='${telefonoPaciente.id_telefono}';`)
 		}
 

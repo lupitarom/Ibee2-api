@@ -3,19 +3,25 @@ const jwt = require('jsonwebtoken')
 const { con, query } = require('../config/connection')
 const router = Router()
 
-router.post('/api/agenda', async(req,res)=>{
-    const {id_consultorio, nombre, color} = req.body; 
+router.post('/api/agenda', async (req, res) => {
+	const { id } = req.params	
     
-    try {
-        await query(`INSERT INTO consultorio(id_consultorio,nombre,color) 
-        VALUES ('${id_consultorio}','${nombre}', ${color}');`);
-        res.json({msg: 'consultorio agregado'})
-    } catch (error) {
-        res.json({msg: 'error'})
-        console.log(error);
-        res.status(500).json({error})
-    }
-});
+    const { nom_consultorio	} = req.body
+
+	try {
+
+		//
+		const {} = await query(
+			`INSERT INTO consultorio (nombre) VALUES (?)`,
+			[nom_consultorio]
+		)
+		}catch (error) {
+			console.log(error)
+			res.status(500).json({ msg: 'error en el servidor' })
+		}
+	
+	})
+
 /*
 router.post('/api/agenda', (req,res)=> {
 
@@ -29,3 +35,4 @@ router.post('/api/agenda', (req,res)=> {
        } 
        console.log(result)
     });   })*/
+    module.exports = router
